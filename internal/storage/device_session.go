@@ -51,6 +51,8 @@ type DeviceSession struct {
 	NwkSKey  lorawan.AES128Key
 	FCntUp   uint32
 	FCntDown uint32
+	// Catch large gaps on Upload
+	FCntGap int32
 
 	// Only used by ABP activation
 	SkipFCntValidation bool
@@ -158,13 +160,16 @@ func GetRandomDevAddr(p *redis.Pool, netID lorawan.NetID) (lorawan.DevAddr, erro
 // to validate the MIC, the full 32 bit frame-counter needs to be set.
 // After a succesful validation of the FCntUp and the MIC, don't forget
 // to synchronize the Node FCntUp with the packet FCnt.
-func ValidateAndGetFullFCntUp(s DeviceSession, fCntUp uint32) (uint32, bool) {
+func ValidateAndGetFullFCntUp(s DeviceSession, fCntUp uint32) (uint32, int32, bool) {
 	// we need to compare the difference of the 16 LSB
+//	gp := int32(uint16(fCntUp) - uint16(s.FCntUp%65536))
+	gp := int32(int16(fCntUp) - int16(s.FCntUp%65536))
 	gap := uint32(uint16(fCntUp) - uint16(s.FCntUp%65536))
+
 	if gap < common.Band.MaxFCntGap {
-		return s.FCntUp + gap, true
+		return s.FCntUp + gap, gp, true
 	}
-	return 0, false
+	return 0, gp, false
 }
 
 // SaveDeviceSession saves the device-session. In case it doesn't exist yet
@@ -286,10 +291,12 @@ func GetDeviceSessionForPHYPayload(p *redis.Pool, phy lorawan.PHYPayload) (Devic
 	}
 
 	for _, s := range sessions {
+		origFCnt:=s.FCntUp
 		// reset to the original FCnt
 		macPL.FHDR.FCnt = originalFCnt
 		// get full FCnt
-		fullFCnt, ok := ValidateAndGetFullFCntUp(s, macPL.FHDR.FCnt)
+		fullFCnt, gap, ok := ValidateAndGetFullFCntUp(s, macPL.FHDR.FCnt)
+		s.FCntGap=gap
 		if !ok {
 			// If RelaxFCnt is turned on, just trust the uplink FCnt
 			// this is insecure, but has been requested by many people for
@@ -315,11 +322,21 @@ func GetDeviceSessionForPHYPayload(p *redis.Pool, phy lorawan.PHYPayload) (Devic
 					log.WithFields(log.Fields{
 						"dev_addr": macPL.FHDR.DevAddr,
 						"dev_eui":  s.DevEUI,
+						"Gap": s.FCntGap,
+						"Original_fCnt": origFCnt,
 					}).Warning("frame counters reset")
 					return s, nil
 				}
+			} else if gap!=0 {
+				log.WithFields(log.Fields{
+					"dev_addr": macPL.FHDR.DevAddr,
+					"dev_eui":  s.DevEUI,
+					"Gap": s.FCntGap,
+					"Original_fCnt": origFCnt,
+				}).Warning("Gap on frame count!")
+				return s, ErrDoesNotExistOrFCntOrMICInvalid
+				return s, nil
 			}
-			// try the next node-session
 			continue
 		}
 

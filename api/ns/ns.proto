@@ -308,6 +308,7 @@ message ActivateDeviceRequest {
 
     // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
     bool skipFCntCheck = 6;
+
 }
 
 message ActivateDeviceResponse {}
@@ -339,6 +340,10 @@ message GetDeviceActivationResponse {
 
     // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
     bool skipFCntCheck = 5;
+
+
+    // The gap between fCntUp arrivals.
+    int32 fCntGap = 6;
 }
 
 

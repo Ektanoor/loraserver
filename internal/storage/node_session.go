@@ -21,6 +21,7 @@ type NodeSession struct {
 	NwkSKey   lorawan.AES128Key
 	FCntUp    uint32
 	FCntDown  uint32
+	FCntGap   int32
 	RelaxFCnt bool
 
 	RXWindow    RXWindow
@@ -121,6 +122,7 @@ func MigrateNodeToDeviceSession(p *redis.Pool, db sqlx.Ext, devEUI, joinEUI lora
 		NwkSKey:  ns.NwkSKey,
 		FCntUp:   ns.FCntUp,
 		FCntDown: ns.FCntDown,
+		FCntGap:  ns.FCntGap,
 
 		SkipFCntValidation: ns.RelaxFCnt,
 

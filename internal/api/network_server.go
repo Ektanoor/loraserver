@@ -602,6 +602,7 @@ func (n *NetworkServerAPI) GetDeviceActivation(ctx context.Context, req *ns.GetD
 		NwkSKey:       ds.NwkSKey[:],
 		FCntUp:        ds.FCntUp,
 		FCntDown:      ds.FCntDown,
+		FCntGap:       ds.FCntGap,
 		SkipFCntCheck: ds.SkipFCntValidation,
 	}, nil
 }

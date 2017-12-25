@@ -177,6 +177,7 @@ func TestGetDeviceSessionForPHYPayload(t *testing.T) {
 				DevEUI:             lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1},
 				NwkSKey:            lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 				FCntUp:             100,
+				FCntGap:              1,
 				SkipFCntValidation: true,
 			},
 			{
@@ -184,6 +185,7 @@ func TestGetDeviceSessionForPHYPayload(t *testing.T) {
 				DevEUI:             lorawan.EUI64{2, 2, 2, 2, 2, 2, 2, 2},
 				NwkSKey:            lorawan.AES128Key{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
 				FCntUp:             200,
+				FCntGap:              1,
 				SkipFCntValidation: false,
 			},
 		}

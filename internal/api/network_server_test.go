@@ -473,6 +473,7 @@ func TestNetworkServerAPI(t *testing.T) {
 							NwkSKey:       nwkSKey[:],
 							FCntUp:        10,
 							FCntDown:      11,
+							FCntGap:        1,
 							SkipFCntCheck: true,
 						})
 					})
